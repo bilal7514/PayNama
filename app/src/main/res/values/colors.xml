@@ -2,11 +2,11 @@
 <resources>
     <color name="colorPrimary">#199450</color>
     <color name="colorPrimaryDark">#11703c</color>
-    <color name="colorPrimaryLight">#1E88E5</color>
-    <color name="colorAccent">#20bd67</color>
+    <color name="colorPrimaryLight">#20bd67</color>
+    <color name="colorAccent">#FFFFFF</color>
     <color name="colorAccentDark">#FFFFFF</color>
     <color name="colorAccentLight">#FFFFFF</color>
-    <color name="colorAppBackground">#C80ED85A</color>
+    <color name="colorAppBackground">#AA0ED85A</color>
 
     <color name="overlay_dark_10">#1A000000</color>
     <color name="overlay_dark_20">#33000000</color>
