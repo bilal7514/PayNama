@@ -47,20 +47,22 @@ import java.util.Map;
 public class FormActivity extends AppCompatActivity {
 
     List<Government> governments;
-    Spinner type, gov, month, year;
+    Spinner type, gov, month, year, search_type;
     EditText param;
-    String govt, file_type, _month, _year, errorMessage;
-    int p_gov, p_type, p_month, p_year;
+    String govt, file_type, _month, _year, _search_type, errorMessage;
+    int p_gov, p_type, p_month, p_year, p_search_type;
     ProgressBar progressBar;
     ConstraintLayout formLayout;
-    List<String> years, months;
+    List<String> years, months, search_types;
     com.android.volley.RequestQueue requestQueue;
     Button generate;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_form);
-        getSupportActionBar().hide();
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setLogo(R.mipmap.ic_launcher);
+        getSupportActionBar().setDisplayUseLogoEnabled(true);
 
         formLayout = findViewById(R.id.form_layout);
         progressBar = findViewById(R.id.progress_bar);
@@ -72,10 +74,16 @@ public class FormActivity extends AppCompatActivity {
         gov = findViewById(R.id.gov);
         month = findViewById(R.id.month);
         year = findViewById(R.id.year);
+        search_type = findViewById(R.id.search_type);
         generate = findViewById(R.id.generate);
 
         years = new ArrayList<>();
         months = new ArrayList<>();
+        search_types = new ArrayList<>();
+        search_types.add("Select Search Filter");
+        search_types.add("CNIC");
+        search_types.add("DDO Code");
+        search_types.add("Personal Number");
         years.add("Select a Year");
         months.add("Select a Month");
         governments = new ArrayList<>();
@@ -100,6 +108,32 @@ public class FormActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
+
+        ArrayAdapter<String> adapterSearchType = new ArrayAdapter<String>(FormActivity.this, android.R.layout.simple_spinner_dropdown_item, search_types);
+        adapterSearchType.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
+        search_type.setAdapter(adapterSearchType);
+
+        search_type.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
+                _search_type = parent.getSelectedItem().toString();
+                p_search_type = position;
+                if(position==1){
+                    param.setHint("Type your CNIC");
+                }else if(position==2){
+                    param.setHint("Type your DDO Code");
+                }else if(position==3){
+                    param.setHint("Type your Personal No.");
+                }else{
+                    param.setHint("Type CNIC / Personal No. / DDO code");
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
         year.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -140,6 +174,13 @@ public class FormActivity extends AppCompatActivity {
                 ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
                 file_type = parent.getSelectedItem().toString();
                 p_type = position;
+                if(position==2){
+                    search_type.setSelection(2);
+                    search_type.setEnabled(false);
+                }else{
+                    search_type.setSelection(0);
+                    search_type.setEnabled(true);
+                }
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -167,9 +208,9 @@ public class FormActivity extends AppCompatActivity {
             progressBar.setVisibility(View.VISIBLE);
             String url = "";
             if(file_type.equals("Pay Slip")){
-                url = "https://humudapps.com/app/dao/android/generate-payslip.php";
+                url = DetectConnection.getUrl()+"android/generate-payslip.php";
             }else if(file_type.equals("Expenditure")){
-                url = "https://humudapps.com/app/dao/android/generate-expenditure.php";
+                url = DetectConnection.getUrl()+"android/generate-expenditure.php";
             }
             StringRequest request = new StringRequest(Request.Method.POST, url, response -> {
                 try {
@@ -193,6 +234,8 @@ public class FormActivity extends AppCompatActivity {
                     params.put("gov",govt);
                     params.put("year",_year);
                     params.put("month",_month);
+                    params.put("app_code","6");
+                    params.put("search_type",_search_type);
                     params.put("param",param.getText().toString());
                     return params;
                 }
@@ -221,13 +264,17 @@ public class FormActivity extends AppCompatActivity {
             errorMessage = "Please Select a File Type";
         }else if(param.getText().toString().isEmpty()){
             error = true;
-            errorMessage = "Please Type Your CNIC, Personal No. or DDO Code.";
+            errorMessage = "Please Type Your CNIC, Personal No. or DDO Code";
+        }
+        else if(param.getText().toString().isEmpty()){
+            error = true;
+            errorMessage = "Please Select a Search Filter";
         }
         return error;
     }
     private void getData() {
 
-        String url = "https://humudapps.com/app/dao/android/get-data.php";
+        String url = DetectConnection.getUrl()+"android/get-data.php";
         StringRequest request = new StringRequest(Request.Method.POST, url, response -> {
             try {
 
@@ -253,6 +300,8 @@ public class FormActivity extends AppCompatActivity {
                     year.setSelection(0);
                     month.setSelection(0);
                     type.setSelection(0);
+                }else{
+                    Toast.makeText(this, "Oops! Something went wrong. Restart application", Toast.LENGTH_LONG).show();
                 }
                 formLayout.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
@@ -290,7 +339,7 @@ public class FormActivity extends AppCompatActivity {
         dialog.findViewById(R.id.bt_close).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = "https://humudapps.com/app/dao/"+file;
+                String url = DetectConnection.getUrl()+file;
                 DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
                 request.setDescription("Downloading File");
                 String fileName = url.substring(url.lastIndexOf('/') + 1);

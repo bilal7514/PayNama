@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_middle"
-            android:text="No Data Found"
+            android:text="Oops!"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textColor="@android:color/white"
             android:textStyle="bold" />
@@ -62,13 +62,13 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/bt_close"
+            style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/Widget.AppCompat.Button.Borderless"
             android:background="@drawable/btn_rounded_red"
             android:paddingLeft="@dimen/spacing_mlarge"
             android:paddingRight="@dimen/spacing_mlarge"
-            android:text="Retry"
+            android:text="Okay"
             android:textColor="@android:color/white" />
 
     </LinearLayout>
