@@ -8,6 +8,8 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionModeOverlay">true</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
         <item name="android:actionModeBackground">@color/blue_grey_600</item>
         <item name="android:dialogTheme">@style/Dialog.Theme</item>
     </style>
@@ -64,7 +66,6 @@
     </style>
 
 
-
     <style name="Dialog.Theme" parent="Theme.AppCompat.Light.Dialog">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -104,7 +105,6 @@
         <item name="colorControlNormal">@color/grey_60</item>
         <item name="colorControlActivated">@color/yellow_600</item>
     </style>
-
 
 
     <style name="TextAppearance.Subhead.Bold" parent="@style/TextAppearance.AppCompat.Subhead">
@@ -178,10 +178,14 @@
     </style>
 
 
-
     <style name="ProgressBar.White" parent="@style/AppTheme">
         <item name="colorPrimary">@android:color/white</item>
         <item name="colorAccent">@android:color/white</item>
+    </style>
+
+    <style name="ProgressBar.Green" parent="@style/AppTheme">
+        <item name="colorPrimary">@color/colorAccentDark</item>
+        <item name="colorAccent">@color/colorAccentLight</item>
     </style>
 
     <style name="Checkbox.Blue" parent="@style/AppTheme">
@@ -191,13 +195,20 @@
         <item name="colorControlHighlight">@color/blue_600</item>
         <item name="colorControlNormal">@color/grey_40</item>
     </style>
+
     <style name="RippleStyleWhite">
         <item name="mrl_rippleOverlay">true</item>
         <item name="mrl_rippleColor">#80FFFFFF</item>
         <item name="mrl_rippleHover">true</item>
         <item name="mrl_rippleAlpha">0.2</item>
     </style>
+
     <style name="RippleStyleBlack" parent="RippleStyleWhite">
         <item name="mrl_rippleColor">#8096989A</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
 </resources>

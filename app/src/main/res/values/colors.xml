@@ -7,7 +7,8 @@
     <color name="colorPrimaryDark">#FFFFFF</color>
     <color name="colorPrimaryLight">#FFFFFF</color>
 
-    <color name="colorAppBackground">#BFFFFFFF</color>
+    <color name="colorAppBackgroundGreen">#BF199450</color>
+    <color name="colorAppBackground">#E6FFFFFF</color>
 
     <color name="overlay_dark_10">#1A000000</color>
     <color name="overlay_dark_20">#33000000</color>

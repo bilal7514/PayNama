@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_middle"
-            android:text="Data Found!"
+            android:text="Done!"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
             android:textColor="@android:color/white"
             android:textStyle="bold" />
@@ -46,7 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_small"
-            android:text="Click the button below to start download"
+            android:text="Lorem Ipsum Dolar Samit"
             android:textAlignment="center"
             android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
             android:textColor="@color/grey_60" />
@@ -68,7 +68,7 @@
             android:background="@drawable/btn_rounded_green"
             android:paddingLeft="@dimen/spacing_mlarge"
             android:paddingRight="@dimen/spacing_mlarge"
-            android:text="Download"
+            android:text="Okay"
             android:textColor="@android:color/white" />
 
     </LinearLayout>

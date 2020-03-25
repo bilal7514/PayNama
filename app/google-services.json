@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "690975469123",
+    "firebase_url": "https://paynama-humud-apps.firebaseio.com",
+    "project_id": "paynama-humud-apps",
+    "storage_bucket": "paynama-humud-apps.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690975469123:android:6fab17dc23c3bad0862ef6",
+        "android_client_info": {
+          "package_name": "com.humudtech.paynama"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "690975469123-hr0v0o8igns6ge1rmcd7bkirm8esv3gj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.humudtech.paynama",
+            "certificate_hash": "bc4d3305fc9d73a313da9ce4d56e033a8669e97a"
+          }
+        },
+        {
+          "client_id": "690975469123-cvd5h7bk3dcaj83v5dlmspuoip01bhv8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBn-3RZI5saGMXKMDsQfDolHXizRi_bj1A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "690975469123-cvd5h7bk3dcaj83v5dlmspuoip01bhv8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,46 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:app="http://schemas.android.com/apk/res-auto"
-xmlns:tools="http://schemas.android.com/tools"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:orientation="vertical"
-tools:context=".FormActivity">
-
-<ImageView
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:contentDescription="splash layout"
-    android:scaleType="centerCrop"
-    android:src="@drawable/qauid" />
+    android:orientation="vertical"
+    tools:context=".ReportsFragment">
 
-<View
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorAppBackground" />
-<ProgressBar
-    android:id="@+id/progress_bar"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_centerInParent="true"
-    android:visibility="gone" />
+    <LinearLayout
+        android:id="@+id/progress_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone"
+        android:orientation="vertical">
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_gravity="center" />
 
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/form_layout">
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/nested_content"
+        android:id="@+id/scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:scrollbars="vertical"
-        android:scrollingCache="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:scrollingCache="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -50,6 +39,31 @@ tools:context=".FormActivity">
             android:paddingTop="@dimen/spacing_middle"
             android:paddingRight="@dimen/spacing_mlarge"
             android:paddingBottom="@dimen/spacing_middle">
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="@dimen/spacing_mlarge" />
+
+            <View
+                android:layout_width="50dp"
+                android:layout_height="3dp"
+                android:layout_gravity="center_horizontal"
+                android:background="?attr/colorAccent" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="@dimen/spacing_middle"
+                android:text="Pay Nama"
+                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+                android:textColor="?attr/colorAccent"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="@dimen/spacing_large" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -62,7 +76,7 @@ tools:context=".FormActivity">
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/spacing_medium"
-                    android:text="Government"
+                    android:text="Report Type"
                     android:textAppearance="@style/TextAppearance.AppCompat.Caption"
                     android:textColor="@color/colorAccent" />
 
@@ -74,7 +88,43 @@ tools:context=".FormActivity">
                     android:orientation="horizontal">
 
                     <Spinner
-                        android:id="@+id/gov"
+                        android:id="@+id/report"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/spacing_xmlarge"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:gravity="center_horizontal|center_vertical"
+                        android:spinnerMode="dialog"
+                        android:textAlignment="center"
+                        android:textSize="30sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_medium">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_medium"
+                    android:text="District"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                    android:textColor="@color/colorAccent" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@drawable/background"
+                    android:orientation="horizontal">
+
+                    <Spinner
+                        android:id="@+id/district"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/spacing_xmlarge"
                         android:layout_weight="1"
@@ -162,106 +212,6 @@ tools:context=".FormActivity">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_medium"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_medium">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/spacing_medium"
-                    android:text="File Type"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                    android:textColor="@color/colorAccent" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/background"
-                    android:orientation="horizontal">
-
-                    <Spinner
-                        android:id="@+id/type"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/spacing_xmlarge"
-                        android:layout_weight="1"
-                        android:background="@android:color/transparent"
-                        android:gravity="center_horizontal|center_vertical"
-                        android:spinnerMode="dialog"
-                        android:textAlignment="center"
-                        android:textSize="30sp" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_medium"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_medium">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/spacing_medium"
-                    android:text="Search By"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                    android:textColor="@color/colorAccent" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/background"
-                    android:orientation="horizontal">
-
-                    <Spinner
-                        android:id="@+id/search_type"
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/spacing_xmlarge"
-                        android:layout_weight="1"
-                        android:background="@android:color/transparent"
-                        android:gravity="center_horizontal|center_vertical"
-                        android:spinnerMode="dialog"
-                        android:textAlignment="center"
-                        android:textSize="30sp" />
-                </LinearLayout>
-
-            </LinearLayout>
-            
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/spacing_medium"
-                android:orientation="vertical"
-                android:padding="@dimen/spacing_medium">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="@dimen/spacing_medium"
-                    android:text="CNIC / Personal No. / DDO Code"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                    android:textColor="@color/colorAccent" />
-
-                <EditText
-                    android:id="@+id/param"
-                    style="@style/EditText.Flat.Grey"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/spacing_xmlarge"
-                    android:background="@drawable/background"
-                    android:hint="Type CNIC / Personal No. / DDO code"
-                    android:minHeight="@dimen/spacing_xmlarge"
-                    android:paddingLeft="@dimen/spacing_large"
-                    android:paddingRight="@dimen/spacing_large" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/spacing_middle"
                 android:orientation="vertical">
 
@@ -271,7 +221,7 @@ tools:context=".FormActivity">
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/btn_rounded_primary"
-                    android:text="Generate Report"
+                    android:text="Generate"
                     android:textColor="@android:color/white" />
 
             </LinearLayout>
@@ -279,7 +229,6 @@ tools:context=".FormActivity">
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
-</androidx.constraintlayout.widget.ConstraintLayout>
 
 
 </RelativeLayout>
