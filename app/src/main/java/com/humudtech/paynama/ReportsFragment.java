@@ -312,7 +312,7 @@ public class ReportsFragment extends Fragment {
                     params.put("month",month_param);
                     params.put("search_type",searchType);
                     params.put("param",param);
-                    params.put("app_code","13");
+                    params.put("app_code","15");
                     return params;
                 }
             };

@@ -45,6 +45,8 @@ public class BaseActivity extends AppCompatActivity {
         });
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-5312186303011441/6606399397");
+        InterstitialAdRequest = new AdRequest.Builder().build();
+        mInterstitialAd.loadAd(InterstitialAdRequest);
         mInterstitialAd.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
@@ -73,6 +75,7 @@ public class BaseActivity extends AppCompatActivity {
 
             @Override
             public void onAdClosed() {
+                mInterstitialAd.loadAd(new AdRequest.Builder().build());
                 // Code to be executed when the interstitial ad is closed.
             }
         });
@@ -158,8 +161,7 @@ public class BaseActivity extends AppCompatActivity {
         appUpdateManager = AppUpdateManagerFactory.create(BaseActivity.this);
         Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
         appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
-            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
-                    && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
                 try {
                     appUpdateManager.startUpdateFlowForResult(appUpdateInfo, AppUpdateType.IMMEDIATE, this, 1);
                 } catch (IntentSender.SendIntentException e) {
@@ -169,15 +171,16 @@ public class BaseActivity extends AppCompatActivity {
         });
     }
     public void loadInterstitialAd(){
-        InterstitialAdRequest = new AdRequest.Builder().build();
-        mInterstitialAd.loadAd(InterstitialAdRequest);
+
         if (mInterstitialAd.isLoaded()) {
             mInterstitialAd.show();
         }
+
     }
     public void hideBanner(){
         mAdView.setVisibility(View.GONE);
     }
+
     public void showBanner(){
         mAdView.setVisibility(View.VISIBLE);
     }
