@@ -48,7 +48,7 @@ public class ReportsFragment extends Fragment {
     com.android.volley.RequestQueue requestQueue;
     Spinner report, month, year, district;
     NestedScrollView scroll_view;
-    LinearLayout progress_bar;
+    LinearLayout progress_bar, monthLayout;
     SharedPreferences sharedPreferences;
     Button generate;
     int p_district, p_report, p_month, p_year;
@@ -68,7 +68,10 @@ public class ReportsFragment extends Fragment {
         district = root.findViewById(R.id.district);
         scroll_view = root.findViewById(R.id.scroll_view);
         progress_bar = root.findViewById(R.id.progress_bar);
+        monthLayout = root.findViewById(R.id.month_layout);
         generate = root.findViewById(R.id.generate);
+
+        ((BaseActivity) getActivity()).showBanner();
 
         reports = new ArrayList<>();
         sharedPreferences= getActivity().getSharedPreferences("UserData", MODE_PRIVATE);
@@ -76,13 +79,18 @@ public class ReportsFragment extends Fragment {
         applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
 
         if (!DetectConnection.checkInternetConnection(getActivity())) {
-            DetectConnection.showNoInternet(getActivity());
+            if(!getActivity().isFinishing()){
+                DetectConnection.showNoInternet(getActivity());
+            }
         }else{
             getData();
         }
         generate.setOnClickListener(v -> {
             if (!DetectConnection.checkInternetConnection(getActivity())) {
-                DetectConnection.showNoInternet(getActivity());
+                if(!getActivity().isFinishing()){
+                    DetectConnection.showNoInternet(getActivity());
+                }
+
             }else{
                 generateFile();
             }
@@ -107,7 +115,10 @@ public class ReportsFragment extends Fragment {
                     initSpinners();
                 }else
                 {
-                    DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
+                    if(!getActivity().isFinishing()){
+                        DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
+                    }
+
                 }
                 if(showAds.equals("1")){
                     ((BaseActivity) getActivity()).showBanner();
@@ -121,7 +132,7 @@ public class ReportsFragment extends Fragment {
         }, error -> {
             scroll_view.setVisibility(View.VISIBLE);
             progress_bar.setVisibility(View.GONE);
-            DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
+                DetectConnection.showError(getActivity(),error.getMessage());
         }){
             @Override
             protected Map<String, String> getParams() {
@@ -204,12 +215,18 @@ public class ReportsFragment extends Fragment {
                         districtList.add(new District(dist.getId(),dist.getTitle()));
                     }
                 }
-
                 ArrayAdapter<District> adapterDistrict = new ArrayAdapter<District>(getActivity(), android.R.layout.simple_spinner_dropdown_item,districtList);
                 adapterDistrict.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
                 district.setAdapter(adapterDistrict);
                 adapterDistrict.notifyDataSetChanged();
                 district.setSelection(0);
+                if(report_param.equals("Income Tax Statement")){
+                    monthLayout.setVisibility(View.GONE);
+                    p_month = 100;
+                }else{
+                    monthLayout.setVisibility(View.VISIBLE);
+                    p_month = 0;
+                }
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -276,7 +293,10 @@ public class ReportsFragment extends Fragment {
 
     private void generateFile() {
         if(findErrors()){
-            DetectConnection.showError(getActivity(), errorMessage);
+            if(!getActivity().isFinishing()){
+                DetectConnection.showError(getActivity(), errorMessage);
+            }
+
         }else{
             if(showAds.equals("1")){
                 ((BaseActivity) getActivity()).loadInterstitialAd();
@@ -289,9 +309,15 @@ public class ReportsFragment extends Fragment {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
                     if(jsonObject.getString("code").equals("200")){
-                        DetectConnection.showSuccess(getActivity(),jsonObject.getString("file"));
+                        if(!getActivity().isFinishing()){
+                            DetectConnection.showSuccess(getActivity(),jsonObject.getString("file"));
+                        }
+
                     }else{
-                        DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
+                        if(!getActivity().isFinishing()){
+                            DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
+                        }
+
                     }
                 } catch (Exception e) {
                 }
@@ -300,7 +326,10 @@ public class ReportsFragment extends Fragment {
             }, error -> {
                 scroll_view.setVisibility(View.VISIBLE);
                 progress_bar.setVisibility(View.GONE);
-                DetectConnection.showError(getActivity(),"Something went wrong");
+                if(!getActivity().isFinishing()){
+                    DetectConnection.showError(getActivity(),"Something went wrong");
+                }
+
             }){
                 @Override
                 protected Map<String, String> getParams() {
@@ -312,13 +341,13 @@ public class ReportsFragment extends Fragment {
                     params.put("month",month_param);
                     params.put("search_type",searchType);
                     params.put("param",param);
-                    params.put("app_code","15");
+                    params.put("app_code","17");
                     return params;
                 }
             };
 
             requestQueue = Volley.newRequestQueue(getActivity());
-            int socketTimeout = 30000;
+            int socketTimeout = 300000;
             RetryPolicy policy = new DefaultRetryPolicy(socketTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
             request.setRetryPolicy(policy);
             requestQueue.add(request);

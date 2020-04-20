@@ -1,14 +1,16 @@
 package com.humudtech.paynama;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.widget.NestedScrollView;
-
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+
+import androidx.core.widget.NestedScrollView;
+import androidx.fragment.app.Fragment;
+
 import android.text.TextUtils;
 import android.util.Patterns;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -17,14 +19,15 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.humudtech.paynama.Models.District;
 import com.humudtech.paynama.Models.Government;
+import com.humudtech.paynama.Models.User;
 import com.humudtech.paynama.utils.DetectConnection;
 
 import org.json.JSONArray;
@@ -37,40 +40,42 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class SignUpActivity extends AppCompatActivity {
+import static android.content.Context.MODE_PRIVATE;
+
+
+public class EditProfileFragment extends Fragment {
+    
     com.android.volley.RequestQueue requestQueue;
     Spinner government, account_type, district;
     TextView tv_progress;
     NestedScrollView scroll_view;
     LinearLayout progress_bar;
-    EditText cnic, password, confirm_password, p_num, email;
-    Button sign_up;
+    EditText cnic, p_num, email;
+    Button update;
     boolean error = false;
     Pattern EMAIL_ADDRESS_PATTERN = Patterns.EMAIL_ADDRESS;
-    String newToken = "", company = "0", gov, acc_type;
-    int p_gov, p_acc_type, p_district;
+    String company = "0", gov, acc_type;
+    int p_gov, p_acc_type, p_district, selected_gov = 0;
     SharedPreferences sharedPreferences;
     List<Government> governments, pensionerGovernments;
     List<District> districtList;
     List<String> account_types;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_up);
-        getSupportActionBar().hide();
+    User applicationUser;
+    String selectedAccType;
 
-        government = findViewById(R.id.gov);
-        account_type = findViewById(R.id.acc_type);
-        district = findViewById(R.id.district);
-        tv_progress = findViewById(R.id.tv_progress);
-        scroll_view = findViewById(R.id.scroll_view);
-        progress_bar = findViewById(R.id.progress_bar);
-        cnic = findViewById(R.id.cnic);
-        password = findViewById(R.id.password);
-        confirm_password = findViewById(R.id.confirm_password);
-        p_num = findViewById(R.id.p_num);
-        email = findViewById(R.id.email);
-        sign_up = findViewById(R.id.sign_up);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.fragment_edit_profile, container, false);
+        government = root.findViewById(R.id.gov);
+        account_type = root.findViewById(R.id.acc_type);
+        district = root.findViewById(R.id.district);
+        scroll_view = root.findViewById(R.id.scroll_view);
+        progress_bar = root.findViewById(R.id.progress_bar);
+        cnic = root.findViewById(R.id.cnic);
+        p_num = root.findViewById(R.id.p_num);
+        email = root.findViewById(R.id.email);
+        update = root.findViewById(R.id.update);
 
         districtList = new ArrayList<>();
         governments = new ArrayList<>();
@@ -78,33 +83,32 @@ public class SignUpActivity extends AppCompatActivity {
         account_types = new ArrayList<>();
 
         districtList.add(new District("0","Select District"));
-        governments.add(new Government("Select Government","0"));
-        pensionerGovernments.add(new Government("Select Government","0"));
 
         account_types.add("Select Account Type");
         account_types.add("Employee");
         account_types.add("Pensioner");
 
-        sharedPreferences = getSharedPreferences("UserData", MODE_PRIVATE);
+        governments.add(new Government("Select Government","0"));
+        pensionerGovernments.add(new Government("Select Government","0"));
 
-        ArrayAdapter<String> adapterAccountType = new ArrayAdapter<String>(SignUpActivity.this, android.R.layout.simple_spinner_dropdown_item, account_types);
+        sharedPreferences= getActivity().getSharedPreferences("UserData", MODE_PRIVATE);
+        applicationUser = new User();
+        applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
+
+        ArrayAdapter<String> adapterAccountType = new ArrayAdapter<String>(getActivity(), android.R.layout.simple_spinner_dropdown_item, account_types);
         adapterAccountType.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         account_type.setAdapter(adapterAccountType);
-        ArrayAdapter<Government> governmentArrayAdapter = new ArrayAdapter<Government>(SignUpActivity.this, android.R.layout.simple_spinner_dropdown_item, governments);
-        governmentArrayAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
-        government.setAdapter(governmentArrayAdapter);
-        ArrayAdapter<District> districtArrayAdapter = new ArrayAdapter<District>(SignUpActivity.this, android.R.layout.simple_spinner_dropdown_item, districtList);
-        districtArrayAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
-        district.setAdapter(districtArrayAdapter);
 
-        district.setSelection(0);
-        government.setSelection(0);
-        account_type.setSelection(0);
+        selectedAccType = applicationUser.getAccType();
+
+        account_type.setSelection(account_types.indexOf(selectedAccType));
+        email.setText(applicationUser.getEmail());
+        cnic.setText(applicationUser.getCnic());
+        p_num.setText(applicationUser.getPNum());
 
         government.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-             //   ((TextView) parent.getChildAt(0)).setTextColor(getResources().getColor(R.color.colorAccentLight));
                 Government government = (Government) parent.getSelectedItem();
                 gov = government.getCode();
                 p_gov = position;
@@ -130,16 +134,15 @@ public class SignUpActivity extends AppCompatActivity {
                 acc_type = parent.getSelectedItem().toString();
                 p_acc_type = position;
                 if(acc_type.equals("Pensioner")){
-                    ArrayAdapter<Government> governmentArrayAdapter = new ArrayAdapter<>(SignUpActivity.this, android.R.layout.simple_spinner_dropdown_item, pensionerGovernments);
+                    ArrayAdapter<Government> governmentArrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item, pensionerGovernments);
                     governmentArrayAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
                     government.setAdapter(governmentArrayAdapter);
-                    government.setSelection(0);
                 }else{
-                    ArrayAdapter<Government> governmentArrayAdapter = new ArrayAdapter<>(SignUpActivity.this, android.R.layout.simple_spinner_dropdown_item, governments);
+                    ArrayAdapter<Government> governmentArrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item, governments);
                     governmentArrayAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
                     government.setAdapter(governmentArrayAdapter);
-                    government.setSelection(0);
                 }
+                government.setSelection(selected_gov);
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -147,44 +150,37 @@ public class SignUpActivity extends AppCompatActivity {
         });
 
         scroll_view.setOnTouchListener((view, motionEvent) -> {
-            DetectConnection.hideKeyboard(view, SignUpActivity.this);
+            DetectConnection.hideKeyboard(view, getActivity());
             return false;
         });
-        if (!DetectConnection.checkInternetConnection(SignUpActivity.this)) {
-            if(!isFinishing()){
-                DetectConnection.showNoInternet(SignUpActivity.this);
+        if (!DetectConnection.checkInternetConnection(getActivity())) {
+            if(!getActivity().isFinishing()){
+                DetectConnection.showNoInternet(getActivity());
             }
         }
         else{
             getDistricts();
         }
-
         scroll_view.setVisibility(View.GONE);
         progress_bar.setVisibility(View.VISIBLE);
 
-        sign_up.setOnClickListener(view -> {
-            if (!DetectConnection.checkInternetConnection(SignUpActivity.this)) {
-                if(!isFinishing()){
-                    DetectConnection.showNoInternet(SignUpActivity.this);
+        update.setOnClickListener(view -> {
+            if (!DetectConnection.checkInternetConnection(getActivity())) {
+                if(!getActivity().isFinishing()){
+                    DetectConnection.showNoInternet(getActivity());
                 }
             }else{
-                signUp();
+                updateProfile();
             }
         });
+        return root;
     }
-
-    private  void getToken(){
-        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener( SignUpActivity.this, instanceIdResult -> {
-            newToken = instanceIdResult.getToken();
-        });
-    }
-    private void signUp() {
+    private void updateProfile() {
         if(!validation()){
+            ((BaseActivity) getActivity()).loadInterstitialAd();
             scroll_view.setVisibility(View.GONE);
             progress_bar.setVisibility(View.VISIBLE);
-            tv_progress.setVisibility(View.VISIBLE);
-            String HttpUrl= DetectConnection.getUrl()+"android/sign-up.php";
-            getToken();
+            String HttpUrl= DetectConnection.getUrl()+"android/edit-profile.php";
             StringRequest stringRequest=new StringRequest(Request.Method.POST, HttpUrl, response -> {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -192,31 +188,27 @@ public class SignUpActivity extends AppCompatActivity {
                     {
                         SharedPreferences.Editor e = sharedPreferences.edit();
                         e.putString("userObject",jsonObject.getJSONObject("user").toString());
-                        e.putString("isLoggedIn","1");
                         e.apply();
-                        Intent i = new Intent(SignUpActivity.this, BaseActivity.class);
-                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(i);
-                        finish();
+                        applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
+                        if(!getActivity().isFinishing()){ // crash here
+                            DetectConnection.showSuccessGeneral(getActivity(),jsonObject.getString("msg"));
+                        }
                     }else
                     {
-                        if(!isFinishing()){
-                            DetectConnection.showError(SignUpActivity.this,jsonObject.getString("msg"));
+                        if(!getActivity().isFinishing()){
+                            DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
                         }
-
-                        scroll_view.setVisibility(View.VISIBLE);
-                        progress_bar.setVisibility(View.GONE);
-                        tv_progress.setVisibility(View.GONE);
                     }
-
+                    scroll_view.setVisibility(View.VISIBLE);
+                    progress_bar.setVisibility(View.GONE);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }, error -> {
                 scroll_view.setVisibility(View.VISIBLE);
                 progress_bar.setVisibility(View.GONE);
-                if(!isFinishing()){
-                    DetectConnection.showError(SignUpActivity.this,error.getMessage());
+                if(!getActivity().isFinishing()){
+                    DetectConnection.showError(getActivity(),error.getMessage());
                 }
             }){
                 @Override
@@ -225,24 +217,24 @@ public class SignUpActivity extends AppCompatActivity {
                     params.put("cnic",cnic.getText().toString());
                     params.put("p_num",p_num.getText().toString());
                     params.put("email",email.getText().toString());
-                    params.put("password",password.getText().toString());
+                    params.put("password",applicationUser.getPassword());
                     params.put("acc_type",acc_type);
                     params.put("company",company);
                     params.put("gov",gov);
-                    params.put("token",newToken);
+                    params.put("id",applicationUser.getId());
+                    params.put("token",applicationUser.getToken());
                     return params;
                 }
             };
-            requestQueue = Volley.newRequestQueue(SignUpActivity.this);
+            requestQueue = Volley.newRequestQueue(getActivity());
             int socketTimeout = 30000;
             RetryPolicy policy = new DefaultRetryPolicy(socketTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
             stringRequest.setRetryPolicy(policy);
             requestQueue.add(stringRequest);
         }
     }
-
     private void getDistricts() {
-
+        final int[] j = {0};
         String url = DetectConnection.getUrl()+"android/get-companies.php";
         StringRequest request = new StringRequest(Request.Method.POST, url, response -> {
             try {
@@ -254,31 +246,52 @@ public class SignUpActivity extends AppCompatActivity {
                         JSONObject object = array.getJSONObject(i);
                         District district = new District(object.getString("RecID"),object.getString("fname"));
                         districtList.add(district);
+                        if(applicationUser.getCompany().equals(district.getId())){
+                            j[0] = districtList.indexOf(district);
+                        }
                     }
-                    ArrayAdapter<District> adapter = new ArrayAdapter<>(SignUpActivity.this, android.R.layout.simple_spinner_dropdown_item, districtList);
+                    ArrayAdapter<Government> governmentArrayAdapter;
+                    ArrayAdapter<District> adapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item, districtList);
                     adapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
                     district.setAdapter(adapter);
-                    JSONArray array1 = jsonObject.getJSONArray("governments");
+                    district.setSelection(j[0]);
+
+                    JSONArray array1 = jsonObject.getJSONArray("pensioner_governments");
                     for (int i = 0; i < array1.length(); i++) {
                         JSONObject object = array1.getJSONObject(i);
                         Government government = new Government(object.getString("complete_name"),object.getString("code"));
-                        governments.add(government);
+                        pensionerGovernments.add(government);
+                        if(applicationUser.getAccType().equals("Pensioner")){
+                            if(applicationUser.getGov().equals(government.getCode())){
+                                selected_gov = governments.indexOf(government);
+                            }
+                        }
                     }
-                    JSONArray array2 = jsonObject.getJSONArray("pensioner_governments");
+                    JSONArray array2 = jsonObject.getJSONArray("governments");
                     for (int i = 0; i < array2.length(); i++) {
                         JSONObject object = array2.getJSONObject(i);
                         Government government = new Government(object.getString("complete_name"),object.getString("code"));
-                        pensionerGovernments.add(government);
+                        governments.add(government);
+                        if(applicationUser.getAccType().equals("Employee")){
+                            if(applicationUser.getGov().equals(government.getCode())){
+                                selected_gov = governments.indexOf(government);
+                            }
+                        }
                     }
-                    ArrayAdapter<Government> governmentArrayAdapter = new ArrayAdapter<>(SignUpActivity.this, android.R.layout.simple_spinner_dropdown_item, governments);
+                    if(applicationUser.getAccType().equals("Employee")){
+                        governmentArrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item, governments);
+                    }else {
+                        governmentArrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_spinner_dropdown_item, pensionerGovernments);
+                    }
                     governmentArrayAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
                     government.setAdapter(governmentArrayAdapter);
                 }else
                 {
-                    if(!isFinishing()){
-                        DetectConnection.showError(SignUpActivity.this,jsonObject.getString("msg"));
+                    if(!getActivity().isFinishing()){
+                        DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
                     }
                 }
+                government.setSelection(selected_gov);
                 scroll_view.setVisibility(View.VISIBLE);
                 progress_bar.setVisibility(View.GONE);
             } catch (Exception e) {
@@ -286,8 +299,8 @@ public class SignUpActivity extends AppCompatActivity {
         }, error -> {
             scroll_view.setVisibility(View.VISIBLE);
             progress_bar.setVisibility(View.GONE);
-            if(!isFinishing()){
-                DetectConnection.showError(SignUpActivity.this,"Something went wrong. Try again!");
+            if(!getActivity().isFinishing()){ // crash here
+                DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
             }
         }){
             @Override
@@ -296,7 +309,8 @@ public class SignUpActivity extends AppCompatActivity {
                 return params;
             }
         };
-        requestQueue = Volley.newRequestQueue(SignUpActivity.this);
+
+        requestQueue = Volley.newRequestQueue(getActivity());
         int socketTimeout = 30000;
         RetryPolicy policy = new DefaultRetryPolicy(socketTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
         request.setRetryPolicy(policy);
@@ -309,15 +323,15 @@ public class SignUpActivity extends AppCompatActivity {
         error = false;
         if(p_acc_type==0){
             error = true;
-            DetectConnection.showError(SignUpActivity.this,"Select an account type first");
+            DetectConnection.showError(getActivity(),"Select an account type first");
         }
         if(p_district==0){
             error = true;
-            DetectConnection.showError(SignUpActivity.this,"Select your current station first");
+            DetectConnection.showError(getActivity(),"Select your current station first");
         }
         if(p_gov==0){
             error = true;
-            DetectConnection.showError(SignUpActivity.this,"Select your government / authority first");
+            DetectConnection.showError(getActivity(),"Select your government / authority first");
         }
         if(TextUtils.isEmpty(email.getText().toString())) {
             email.setError("Email is required");
@@ -358,5 +372,4 @@ public class SignUpActivity extends AppCompatActivity {
             requestQueue.cancelAll(this);
         }
     }
-
 }

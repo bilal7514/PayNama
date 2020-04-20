@@ -29,6 +29,9 @@ public class User implements Serializable {
     @SerializedName("ddo")
     @Expose
     private String ddo;
+    @SerializedName("email")
+    @Expose
+    private String Email;
     @SerializedName("company")
     @Expose
     private String company;
@@ -93,6 +96,14 @@ public class User implements Serializable {
 
     public void setDdo(String ddo) {
         this.ddo = ddo;
+    }
+
+    public String getEmail() {
+        return Email;
+    }
+
+    public void setEmail(String email) {
+        this.Email = email;
     }
 
     public String getCompany() {

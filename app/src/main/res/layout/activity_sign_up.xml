@@ -196,6 +196,39 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/spacing_medium"
+                    android:text="Email"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                    android:textColor="@color/colorAccent" />
+
+                <EditText
+                    android:id="@+id/email"
+                    style="@style/EditText.Flat.Grey"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/spacing_xmlarge"
+                    android:background="@drawable/background"
+                    android:hint="Type your Email"
+                    android:inputType="textEmailAddress"
+                    android:minHeight="@dimen/spacing_xmlarge"
+                    android:nextFocusDown="@+id/cnic"
+                    android:paddingLeft="@dimen/spacing_large"
+                    android:paddingRight="@dimen/spacing_large"
+                    android:textColor="@android:color/black"
+                    android:textColorHighlight="@color/grey_900"
+                    android:textColorHint="@color/grey_1000"
+                    android:textColorLink="@android:color/black" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/spacing_medium">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_medium"
                     android:text="CNIC"
                     android:textAppearance="@style/TextAppearance.AppCompat.Caption"
                     android:textColor="@color/colorAccent" />

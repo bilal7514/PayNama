@@ -71,7 +71,7 @@ public class DetectConnection {
         return false;
     }
     public static String getUrl(){
-        return "https://humudapps.com/app/dao/";
+        return "https://paynama.net/dao/";
     }
     public static User getUserObject(String json){
         Gson gson = new Gson();
@@ -128,7 +128,7 @@ public class DetectConnection {
             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
             // get download service and enqueue file
             DownloadManager manager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
-            manager.enqueue(request);
+            manager.enqueue(request); //crash here
             Toast.makeText(context, "Downloading File...", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });

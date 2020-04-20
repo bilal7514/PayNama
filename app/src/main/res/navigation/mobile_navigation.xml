@@ -16,4 +16,9 @@
         android:name="com.humudtech.paynama.SettingsFragment"
         android:label="@string/title_account"
         tools:layout="@layout/fragment_settings" />
+    <fragment
+        android:id="@+id/editProfileFragment"
+        android:name="com.humudtech.paynama.EditProfileFragment"
+        android:label="fragment_edit_profile"
+        tools:layout="@layout/fragment_edit_profile" />
 </navigation>

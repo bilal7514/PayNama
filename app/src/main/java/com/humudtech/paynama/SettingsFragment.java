@@ -1,15 +1,17 @@
 package com.humudtech.paynama;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,10 +28,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -45,29 +47,31 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static android.content.Context.MODE_PRIVATE;
 
 public class SettingsFragment extends Fragment {
     Dialog dialog;
-    Spinner district;
     com.android.volley.RequestQueue requestQueue;
+    EditText email;
     private LinearLayout progress_bar;
     EditText old, _new, confirm;
     TextView id, p_num;
     NestedScrollView scrollView;
+    Pattern EMAIL_ADDRESS_PATTERN = Patterns.EMAIL_ADDRESS;
     SharedPreferences sharedPreferences;
-    LinearLayout change_password, logout, change_station, rate_us;
+    LinearLayout change_password, logout, edit_profile, rate_us, edit_email, share, write;
     User applicationUser;
     boolean error = false;
-    List<District> districtList;
-    int p_district;
-    String company = "0";
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
         View root = inflater.inflate(R.layout.fragment_settings, container, false);
-        change_station = root.findViewById(R.id.change_station);
+        edit_profile = root.findViewById(R.id.edit_profile);
+        edit_email = root.findViewById(R.id.edit_email);
+        share = root.findViewById(R.id.share);
+        write = root.findViewById(R.id.email_us);
         change_password = root.findViewById(R.id.change_password);
         logout = root.findViewById(R.id.logout);
         rate_us = root.findViewById(R.id.rate_us);
@@ -75,78 +79,45 @@ public class SettingsFragment extends Fragment {
         progress_bar = root.findViewById(R.id.progress_bar);
         p_num = root.findViewById(R.id.p_num);
         id = root.findViewById(R.id.id);
+        ((BaseActivity) getActivity()).showBanner();
 
+        edit_email.setVisibility(View.GONE);
+        edit_profile.setVisibility(View.GONE);
 
         sharedPreferences= getActivity().getSharedPreferences("UserData", MODE_PRIVATE);
         applicationUser = new User();
         applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
 
-        if (applicationUser.getAccType().equals("DDO")) {
+        if (applicationUser.getAccType().equals("DDO")) { //crash here
             id.setText("DDO Code. "+applicationUser.getDdo());
+            edit_email.setVisibility(View.VISIBLE);
         }else {
             id.setText("CNIC. "+applicationUser.getCnic());
+            edit_profile.setVisibility(View.VISIBLE);
         }
         p_num.setText("District. "+applicationUser.getDistrict());
-        change_station.setOnClickListener(v -> {
+        edit_profile.setOnClickListener(v -> {
             if (!DetectConnection.checkInternetConnection(getActivity())) {
-                DetectConnection.showNoInternet(getActivity());
+                if(!getActivity().isFinishing()){
+                    DetectConnection.showNoInternet(getActivity());
+                }
             }else{
-                getDistricts();
+                Navigation.findNavController(v).navigate(R.id.editProfileFragment);
             }
         });
         change_password.setOnClickListener(v -> ChangePassword());
         logout.setOnClickListener(v -> Logout());
         rate_us.setOnClickListener(v -> RateUs());
+        write.setOnClickListener(v -> openGmail());
+        share.setOnClickListener(v -> shareApp());
+        edit_email.setOnClickListener(v -> changeEmail());
         return root;
     }
-    private void getDistricts() {
-        scrollView.setVisibility(View.GONE);
-        progress_bar.setVisibility(View.VISIBLE);
-        String url = DetectConnection.getUrl()+"android/get-companies.php";
-        StringRequest request = new StringRequest(Request.Method.POST, url, response -> {
-            try {
-                JSONObject jsonObject = new JSONObject(response);
-                if(jsonObject.getString("code").equals("200"))
-                {
-                    districtList = new ArrayList<>();
-                    districtList.add(new District("0","Select District"));
-                    JSONArray array = jsonObject.getJSONArray("districts");
-                    for (int i = 0; i < array.length(); i++) {
-                        JSONObject object = array.getJSONObject(i);
-                        District district = new District(object.getString("RecID"),object.getString("fname"));
-                        districtList.add(district);
-                    }
-                    changeStation();
-                }else
-                {
-                    DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
-                }
-            } catch (Exception e) {
-            }
-            scrollView.setVisibility(View.VISIBLE);
-            progress_bar.setVisibility(View.GONE);
-        }, error -> {
-            scrollView.setVisibility(View.VISIBLE);
-            progress_bar.setVisibility(View.GONE);
-            DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
-        }){
-            @Override
-            protected Map<String, String> getParams() {
-                Map<String, String> params = new HashMap<String, String>();
-                return params;
-            }
-        };
 
-        requestQueue = Volley.newRequestQueue(getActivity());
-        int socketTimeout = 30000;
-        RetryPolicy policy = new DefaultRetryPolicy(socketTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
-        request.setRetryPolicy(policy);
-        requestQueue.add(request);
-    }
-    private void changeStation() {
+    private void changeEmail() {
         dialog = new Dialog(getActivity());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE); // before
-        dialog.setContentView(R.layout.dialog_district);
+        dialog.setContentView(R.layout.dialog_email);
         dialog.setCancelable(true);
 
         WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
@@ -155,41 +126,45 @@ public class SettingsFragment extends Fragment {
         lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
 
         final Button save = (Button) dialog.findViewById(R.id.bt_save);
-        district = (Spinner) dialog.findViewById(R.id.sp_district);
+        email = (EditText) dialog.findViewById(R.id.et_email);
+        email.setText(applicationUser.getEmail());
 
-        ArrayAdapter<District> districtArrayAdapter = new ArrayAdapter<District>(getActivity(), android.R.layout.simple_spinner_dropdown_item, districtList);
-        districtArrayAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
-        district.setAdapter(districtArrayAdapter);
-        districtArrayAdapter.notifyDataSetChanged();
-        district.setSelection(0);
-        district.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                District district = (District) parent.getSelectedItem();
-                company = district.getId();
-                p_district = position;
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
         save.setOnClickListener(v -> {
             if (!DetectConnection.checkInternetConnection(getActivity())) {
                 DetectConnection.showNoInternet(getActivity());
             }else{
-                ChangeServerDistrict();
+                ChangeServerEmail();
             }
         });
         dialog.show();
         dialog.getWindow().setAttributes(lp);
     }
+    private boolean checkEmail(String email) {
+        return EMAIL_ADDRESS_PATTERN.matcher(email).matches();
+    }
 
-    private void ChangeServerDistrict() {
-        if(p_district!=0){
+    public boolean emailValidation(){
+        error = false;
+        if(TextUtils.isEmpty(email.getText().toString())) {
+            email.setError("Please enter your email");
+            email.requestFocus();
+            error = true;
+        }
+        if(!checkEmail(email.getText().toString())){
+            email.setError("Email address is not valid");
+            email.requestFocus();
+            error = true;
+        }
+
+        return error;
+    }
+
+    private void ChangeServerEmail() {
+        if(!emailValidation()){
             dialog.dismiss();
             scrollView.setVisibility(View.GONE);
             progress_bar.setVisibility(View.VISIBLE);
-            String HttpUrl= DetectConnection.getUrl()+"android/change-station.php";
+            String HttpUrl= DetectConnection.getUrl()+"android/change-email.php";
 
             StringRequest stringRequest=new StringRequest(Request.Method.POST, HttpUrl, response -> {
                 try {
@@ -201,7 +176,6 @@ public class SettingsFragment extends Fragment {
                         e.apply();
                         applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
                         DetectConnection.showSuccessGeneral(getActivity(),jsonObject.getString("msg"));
-                        p_num.setText("District. "+applicationUser.getDistrict());
                     }else
                     {
                         DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
@@ -216,12 +190,11 @@ public class SettingsFragment extends Fragment {
                 scrollView.setVisibility(View.VISIBLE);
                 progress_bar.setVisibility(View.GONE);
                 DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
-
             }){
                 @Override
                 protected Map<String, String> getParams() {
                     Map<String, String> params = new HashMap<String, String>();
-                    params.put("company",company);
+                    params.put("email",email.getText().toString());
                     params.put("id",applicationUser.getId());
                     params.put("token",applicationUser.getToken());
                     return params;
@@ -233,9 +206,7 @@ public class SettingsFragment extends Fragment {
             stringRequest.setRetryPolicy(policy);
             requestQueue.add(stringRequest);
         }
-        else {
-            DetectConnection.showError(getActivity(),"Select a district first");
-        }
+
     }
 
     private void Logout() {
@@ -243,7 +214,9 @@ public class SettingsFragment extends Fragment {
         builder.setTitle("Logout").setMessage("Are you sure?").setCancelable(false);
         builder.setNegativeButton("Yes", (dialog, which) -> {
             if (!DetectConnection.checkInternetConnection(getActivity())) {
-                DetectConnection.showNoInternet(getActivity());
+                if(!getActivity().isFinishing()){
+                    DetectConnection.showNoInternet(getActivity());
+                }
             }else{
                 logoutFromServer();
             }
@@ -260,12 +233,14 @@ public class SettingsFragment extends Fragment {
             sharedPreferences.edit().clear().commit();
             Intent intent = new Intent(context,LoginActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+            startActivity(intent); // crash here
             getActivity().finish();
         }, error -> {
             progress_bar.setVisibility(View.GONE);
             scrollView.setVisibility(View.VISIBLE);
-            DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
+            if(!getActivity().isFinishing()){
+                DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
+            }
         }){
             @Override
             protected Map<String, String> getParams() {
@@ -314,7 +289,9 @@ public class SettingsFragment extends Fragment {
         
         save.setOnClickListener(v -> {
             if (!DetectConnection.checkInternetConnection(getActivity())) {
-                DetectConnection.showNoInternet(getActivity());
+                if(!getActivity().isFinishing()){
+                    DetectConnection.showNoInternet(getActivity());
+                }
             }else{
                 ChangeServerPassword();
             }
@@ -341,10 +318,14 @@ public class SettingsFragment extends Fragment {
                         e.putString("userObject",jsonObject.getJSONObject("user").toString());
                         e.apply();
                         applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
-                        DetectConnection.showSuccessGeneral(getActivity(),jsonObject.getString("msg"));
+                        if(!getActivity().isFinishing()){
+                            DetectConnection.showSuccessGeneral(getActivity(),jsonObject.getString("msg"));
+                        }
                     }else
                     {
-                        DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
+                        if(!getActivity().isFinishing()){
+                            DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
+                        }
                     }
 
                 } catch (JSONException e) {
@@ -355,7 +336,9 @@ public class SettingsFragment extends Fragment {
             }, error -> {
                 scrollView.setVisibility(View.VISIBLE);
                 progress_bar.setVisibility(View.GONE);
-                DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
+                if(!getActivity().isFinishing()){
+                    DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
+                }
 
             }){
                 @Override
@@ -425,5 +408,39 @@ public class SettingsFragment extends Fragment {
         super.onAttach(context);
         this.context = context;
 
+    }
+    private void openGmail() {
+        // perform click on Email ID
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        emailIntent.setType("text/html");
+        final PackageManager pm = getActivity().getPackageManager();
+        final List<ResolveInfo> matches = pm.queryIntentActivities(emailIntent, 0);
+        String className = null;
+        for (final ResolveInfo info : matches) {
+            if (info.activityInfo.packageName.equals("com.google.android.gm")) {
+                className = info.activityInfo.name;
+                if (className != null && !className.isEmpty()) {
+                    break;
+                }
+            }
+        }
+        emailIntent.setData(Uri.parse("mailto:helpdesk@paynama.net"));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feedback of " + getResources().getString(R.string.app_name));
+        emailIntent.setClassName("com.google.android.gm", className);
+        try {
+            startActivity(emailIntent);
+        } catch (ActivityNotFoundException ex) {
+            // handle error
+        }
+
+    }
+
+    public void shareApp() {
+        // share app with your friends
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/*");
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name));
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Install" + getResources().getString(R.string.app_name) + " here: https://play.google.com/store/apps/details?id=" + getActivity().getApplicationContext().getPackageName());
+        startActivity(Intent.createChooser(shareIntent, "Share Using"));
     }
 }

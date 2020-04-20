@@ -1,28 +1,14 @@
 package com.humudtech.paynama;
 
-import android.content.Intent;
-import android.content.IntentSender;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.play.core.appupdate.AppUpdateInfo;
-import com.google.android.play.core.appupdate.AppUpdateManager;
-import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
-import com.google.android.play.core.install.InstallStateUpdatedListener;
-import com.google.android.play.core.install.model.AppUpdateType;
-import com.google.android.play.core.install.model.InstallStatus;
-import com.google.android.play.core.install.model.UpdateAvailability;
-import com.google.android.play.core.tasks.Task;
-import com.humudtech.paynama.utils.DetectConnection;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -31,7 +17,6 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 public class BaseActivity extends AppCompatActivity {
-    AppUpdateManager appUpdateManager;
     private InterstitialAd mInterstitialAd;
     AdRequest BannerAdRequest, InterstitialAdRequest;
     AdView mAdView;
@@ -124,52 +109,8 @@ public class BaseActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
-
-        if (!DetectConnection.checkInternetConnection(BaseActivity.this)) {
-            DetectConnection.showNoInternet(BaseActivity.this);
-        } else {
-            requestUpdate();
-        }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        appUpdateManager = AppUpdateManagerFactory.create(BaseActivity.this);
-        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
-        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
-            if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
-                try {
-                    appUpdateManager.startUpdateFlowForResult(appUpdateInfo, AppUpdateType.IMMEDIATE, this, 1);
-                } catch (IntentSender.SendIntentException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode != RESULT_OK) {
-
-            }
-        }
-    }
-    private void requestUpdate(){
-        appUpdateManager = AppUpdateManagerFactory.create(BaseActivity.this);
-        Task<AppUpdateInfo> appUpdateInfoTask = appUpdateManager.getAppUpdateInfo();
-        appUpdateInfoTask.addOnSuccessListener(appUpdateInfo -> {
-            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
-                try {
-                    appUpdateManager.startUpdateFlowForResult(appUpdateInfo, AppUpdateType.IMMEDIATE, this, 1);
-                } catch (IntentSender.SendIntentException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
     public void loadInterstitialAd(){
 
         if (mInterstitialAd.isLoaded()) {
@@ -184,8 +125,5 @@ public class BaseActivity extends AppCompatActivity {
     public void showBanner(){
         mAdView.setVisibility(View.VISIBLE);
     }
-    @Override
-    public void onBackPressed() {
-        moveTaskToBack(true);
-    }
+
 }
