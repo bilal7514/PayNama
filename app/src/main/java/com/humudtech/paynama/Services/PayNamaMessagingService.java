@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
@@ -32,13 +33,13 @@ public class PayNamaMessagingService extends FirebaseMessagingService {
     PendingIntent pendingIntent;
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-      //  Log.d(TAG, "From: "+remoteMessage.getFrom());
-        // Check if message contains a data payload.
-        if (remoteMessage.getData().size() > 0) {
-            sendNotification(remoteMessage.getData());
-        }
+
+//        if (remoteMessage.getData().size() > 0) {
+//            sendNotification(remoteMessage.getData());
+//        }
+        sendNotification(remoteMessage.getNotification().getTitle(), remoteMessage.getNotification().getBody());
     }
-    private void sendNotification(Map<String,String> messageBody) {
+    private void sendNotification(String title, String body) {
         Intent intent = new Intent(this, BaseActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         final int not_nu=generateRandom();
@@ -47,12 +48,12 @@ public class PayNamaMessagingService extends FirebaseMessagingService {
 
         Uri defaultSoundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-        bigText.bigText(messageBody.get("message"));
-        bigText.setBigContentTitle(messageBody.get("title"));
+        bigText.bigText(body);
+        bigText.setBigContentTitle(title);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(messageBody.get("title"))
-                .setContentText(messageBody.get("message"))
+                .setContentTitle(title)
+                .setContentText(body)
                 .setAutoCancel(true)
                 .setStyle(bigText)
                 .setSound(defaultSoundUri)

@@ -3,9 +3,9 @@
     <color name="colorAccent">#199450</color>
     <color name="colorAccentDark">#11703c</color>
     <color name="colorAccentLight">#20bd67</color>
-    <color name="colorPrimary">#FFFFFF</color>
-    <color name="colorPrimaryDark">#FFFFFF</color>
-    <color name="colorPrimaryLight">#FFFFFF</color>
+    <color name="colorPrimary">#199450</color>
+    <color name="colorPrimaryDark">#11703c</color>
+    <color name="colorPrimaryLight">#20bd67</color>
 
     <color name="colorAppBackgroundGreen">#BF199450</color>
     <color name="colorAppBackground">#E6FFFFFF</color>

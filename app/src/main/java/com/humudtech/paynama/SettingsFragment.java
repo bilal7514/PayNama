@@ -35,6 +35,7 @@ import com.android.volley.Request;
 import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.humudtech.paynama.Models.District;
 import com.humudtech.paynama.Models.User;
 import com.humudtech.paynama.utils.DetectConnection;
@@ -88,29 +89,61 @@ public class SettingsFragment extends Fragment {
         applicationUser = new User();
         applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
 
-        if (applicationUser.getAccType().equals("DDO")) { //crash here
-            id.setText("DDO Code. "+applicationUser.getDdo());
-            edit_email.setVisibility(View.VISIBLE);
-        }else {
-            id.setText("CNIC. "+applicationUser.getCnic());
-            edit_profile.setVisibility(View.VISIBLE);
-        }
-        p_num.setText("District. "+applicationUser.getDistrict());
-        edit_profile.setOnClickListener(v -> {
-            if (!DetectConnection.checkInternetConnection(getActivity())) {
-                if(!getActivity().isFinishing()){
-                    DetectConnection.showNoInternet(getActivity());
-                }
-            }else{
-                Navigation.findNavController(v).navigate(R.id.editProfileFragment);
+        if(applicationUser!=null){
+            scrollView.setVisibility(View.VISIBLE);
+            if (applicationUser.getAccType().equals("DDO")) { //crash here
+                id.setText("DDO Code. "+applicationUser.getDdo());
+                edit_email.setVisibility(View.VISIBLE);
+            }else {
+                id.setText("CNIC. "+applicationUser.getCnic());
+                edit_profile.setVisibility(View.VISIBLE);
             }
-        });
-        change_password.setOnClickListener(v -> ChangePassword());
-        logout.setOnClickListener(v -> Logout());
-        rate_us.setOnClickListener(v -> RateUs());
-        write.setOnClickListener(v -> openGmail());
-        share.setOnClickListener(v -> shareApp());
-        edit_email.setOnClickListener(v -> changeEmail());
+            p_num.setText("District. "+applicationUser.getDistrict());
+            edit_profile.setOnClickListener(v -> {
+                if (!DetectConnection.checkInternetConnection(getActivity())) {
+                    if(!getActivity().isFinishing()){
+                        DetectConnection.showNoInternet(getActivity());
+                    }
+                }else{
+                    Navigation.findNavController(v).navigate(R.id.editProfileFragment);
+                }
+            });
+            change_password.setOnClickListener(v -> ChangePassword());
+            logout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ((BaseActivity) getActivity()).loadInterstitialAd();
+                    Logout();
+                }
+            });
+            rate_us.setOnClickListener(v -> RateUs());
+            write.setOnClickListener(v -> openGmail());
+            share.setOnClickListener(v -> shareApp());
+            edit_email.setOnClickListener(v -> changeEmail());
+        }else{
+            scrollView.setVisibility(View.GONE);
+            final Dialog dialog = new Dialog(getActivity());
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.dialog_warning);
+            dialog.setCancelable(true);
+
+            WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+            lp.copyFrom(dialog.getWindow().getAttributes());
+            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+
+            ((TextView) dialog.findViewById(R.id.content)).setText("Please Sign in to continue!");
+            dialog.findViewById(R.id.bt_close).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(),LoginActivity.class);
+                    startActivity(intent);
+                }
+            });
+            dialog.show();
+            dialog.getWindow().setAttributes(lp);
+        }
+
         return root;
     }
 
@@ -218,44 +251,16 @@ public class SettingsFragment extends Fragment {
                     DetectConnection.showNoInternet(getActivity());
                 }
             }else{
-                logoutFromServer();
+                UnSubscribeFromTopics();
+                sharedPreferences.edit().clear().commit();
+                Intent intent = new Intent(getActivity(),LoginActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
             }
             dialog.dismiss();
         });
         builder.setPositiveButton("No", (dialog, which) -> dialog.dismiss());
         builder.create().show();
-    }
-    public void logoutFromServer(){
-        progress_bar.setVisibility(View.VISIBLE);
-        scrollView.setVisibility(View.GONE);
-        String url = DetectConnection.getUrl()+"android/logout.php";
-        StringRequest request = new StringRequest(Request.Method.POST, url, response -> {
-            sharedPreferences.edit().clear().commit();
-            Intent intent = new Intent(context,LoginActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent); // crash here
-            getActivity().finish();
-        }, error -> {
-            progress_bar.setVisibility(View.GONE);
-            scrollView.setVisibility(View.VISIBLE);
-            if(!getActivity().isFinishing()){
-                DetectConnection.showError(getActivity(),"Something went wrong. Try again!");
-            }
-        }){
-            @Override
-            protected Map<String, String> getParams() {
-                // Creating Map String Params.
-                Map<String, String> params = new HashMap<String, String>();
-                params.put("user",applicationUser.getId());
-                params.put("token",applicationUser.getToken());
-                return params;
-            }
-        };
-        requestQueue = Volley.newRequestQueue(getActivity());
-        int socketTimeout = 30000;
-        RetryPolicy policy = new DefaultRetryPolicy(socketTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
-        request.setRetryPolicy(policy);
-        requestQueue.add(request);
     }
     private void RateUs() {
         Uri uri = Uri.parse("market://details?id=" + getActivity().getPackageName());
@@ -442,5 +447,23 @@ public class SettingsFragment extends Fragment {
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name));
         shareIntent.putExtra(Intent.EXTRA_TEXT, "Install" + getResources().getString(R.string.app_name) + " here: https://play.google.com/store/apps/details?id=" + getActivity().getApplicationContext().getPackageName());
         startActivity(Intent.createChooser(shareIntent, "Share Using"));
+    }
+    public List<String> getTopics(){
+        List<String> topics = new ArrayList<>();
+        topics.add(applicationUser.getAccType().replaceAll(" ","_").toLowerCase());
+        topics.add(applicationUser.getDistrict().replaceAll(" ","_").toLowerCase());
+        topics.add(applicationUser.getGov().replaceAll(" ","_").toLowerCase());
+        topics.add(applicationUser.getAccType().replaceAll(" ","_").toLowerCase() + "_" +  applicationUser.getDistrict().replaceAll(" ","_").toLowerCase());
+        topics.add(applicationUser.getAccType().replaceAll(" ","_").toLowerCase() + "_" +  applicationUser.getGov().replaceAll(" ","_").toLowerCase());
+        topics.add(applicationUser.getDistrict().replaceAll(" ","_").toLowerCase() + "_" +  applicationUser.getGov().replaceAll(" ","_").toLowerCase());
+        topics.add(applicationUser.getAccType().replaceAll(" ","_").toLowerCase() + "_" +  applicationUser.getDistrict().replaceAll(" ","_").toLowerCase() + "_" +  applicationUser.getGov().replaceAll(" ","_").toLowerCase());
+        return topics;
+    }
+    private void UnSubscribeFromTopics() {
+        List<String> topics = getTopics();
+        for (String topic : topics) {
+            FirebaseMessaging.getInstance().unsubscribeFromTopic(topic).addOnCompleteListener(task -> {
+            });
+        }
     }
 }

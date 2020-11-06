@@ -262,7 +262,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="@dimen/spacing_medium"
-                    android:text="Personal No."
+                    android:text="Personnel No."
                     android:textAppearance="@style/TextAppearance.AppCompat.Caption"
                     android:textColor="@color/colorAccent" />
 
@@ -272,7 +272,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/spacing_xmlarge"
                     android:background="@drawable/background"
-                    android:hint="Type Personal No."
+                    android:hint="Type Personnel No."
                     android:inputType="number"
                     android:minHeight="@dimen/spacing_xmlarge"
                     android:nextFocusDown="@+id/password"

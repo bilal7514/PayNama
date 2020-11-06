@@ -2,8 +2,11 @@
     <string name="app_name">Pay Nama</string>
     <string name="title_activity_home">HomeActivity</string>
 
+    <string name="title_books">Books</string>
     <string name="title_reports">Reports</string>
     <string name="title_account">Settings</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_downloads">Downloads</string>
     <string name="title_activity_base">BaseActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

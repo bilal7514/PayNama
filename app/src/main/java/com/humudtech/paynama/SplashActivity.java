@@ -19,7 +19,8 @@ public class SplashActivity extends AppCompatActivity {
         setContentView(R.layout.activity_splash);
         getSupportActionBar().hide();
         sharedPreferences = getSharedPreferences("UserData", MODE_PRIVATE);
-
+        Tools.setSystemBarColor(this, android.R.color.white);
+        Tools.setSystemBarLight(this);
         Handler handler = new Handler();
         handler.postDelayed(() -> startApplication(), 3000);
     }

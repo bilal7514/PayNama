@@ -1,15 +1,20 @@
 package com.humudtech.paynama;
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 
 import androidx.annotation.NonNull;
@@ -71,31 +76,52 @@ public class ReportsFragment extends Fragment {
         monthLayout = root.findViewById(R.id.month_layout);
         generate = root.findViewById(R.id.generate);
 
-        ((BaseActivity) getActivity()).showBanner();
-
         reports = new ArrayList<>();
         sharedPreferences= getActivity().getSharedPreferences("UserData", MODE_PRIVATE);
         applicationUser = new User();
         applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
-
-        if (!DetectConnection.checkInternetConnection(getActivity())) {
-            if(!getActivity().isFinishing()){
-                DetectConnection.showNoInternet(getActivity());
-            }
-        }else{
-            getData();
-        }
-        generate.setOnClickListener(v -> {
+        if(applicationUser!=null) {
             if (!DetectConnection.checkInternetConnection(getActivity())) {
-                if(!getActivity().isFinishing()){
+                if (!getActivity().isFinishing()) {
                     DetectConnection.showNoInternet(getActivity());
                 }
-
-            }else{
-                generateFile();
+            } else {
+                getData();
             }
+            generate.setOnClickListener(v -> {
+                if (!DetectConnection.checkInternetConnection(getActivity())) {
+                    if (!getActivity().isFinishing()) {
+                        DetectConnection.showNoInternet(getActivity());
+                    }
 
-        });
+                } else {
+                    generateFile();
+                }
+
+            });
+        }else{
+            scroll_view.setVisibility(View.GONE);
+            final Dialog dialog = new Dialog(getActivity());
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.dialog_warning);
+            dialog.setCancelable(true);
+
+            WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+            lp.copyFrom(dialog.getWindow().getAttributes());
+            lp.width = WindowManager.LayoutParams.WRAP_CONTENT;
+            lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+
+            ((TextView) dialog.findViewById(R.id.content)).setText("Please Sign in to continue!");
+            dialog.findViewById(R.id.bt_close).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(),LoginActivity.class);
+                    startActivity(intent);
+                }
+            });
+            dialog.show();
+            dialog.getWindow().setAttributes(lp);
+        }
         return root;
     }
 
@@ -335,6 +361,7 @@ public class ReportsFragment extends Fragment {
                 protected Map<String, String> getParams() {
                     Map<String, String> params = new HashMap<String, String>();
                     params.put("company",district_param);
+                    params.put("company",district_param);
                     params.put("type",report_param);
                     params.put("gov",applicationUser.getGov());
                     params.put("year",year_param);
@@ -347,7 +374,7 @@ public class ReportsFragment extends Fragment {
             };
 
             requestQueue = Volley.newRequestQueue(getActivity());
-            int socketTimeout = 300000;
+            int socketTimeout = 30000;
             RetryPolicy policy = new DefaultRetryPolicy(socketTimeout, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
             request.setRetryPolicy(policy);
             requestQueue.add(request);
@@ -370,4 +397,5 @@ public class ReportsFragment extends Fragment {
         }
         return error;
     }
+
 }

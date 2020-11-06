@@ -25,7 +25,9 @@ import com.android.volley.toolbox.Volley;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.humudtech.paynama.Models.District;
 import com.humudtech.paynama.Models.Government;
+import com.humudtech.paynama.Models.User;
 import com.humudtech.paynama.utils.DetectConnection;
+import com.humudtech.paynama.utils.Tools;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,7 +49,7 @@ public class SignUpActivity extends AppCompatActivity {
     Button sign_up;
     boolean error = false;
     Pattern EMAIL_ADDRESS_PATTERN = Patterns.EMAIL_ADDRESS;
-    String newToken = "", company = "0", gov, acc_type;
+    String newToken = "00", company = "0", gov, acc_type;
     int p_gov, p_acc_type, p_district;
     SharedPreferences sharedPreferences;
     List<Government> governments, pensionerGovernments;
@@ -84,6 +86,9 @@ public class SignUpActivity extends AppCompatActivity {
         account_types.add("Select Account Type");
         account_types.add("Employee");
         account_types.add("Pensioner");
+
+        Tools.setSystemBarColor(this, android.R.color.white);
+        Tools.setSystemBarLight(this);
 
         sharedPreferences = getSharedPreferences("UserData", MODE_PRIVATE);
 
@@ -173,18 +178,12 @@ public class SignUpActivity extends AppCompatActivity {
         });
     }
 
-    private  void getToken(){
-        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener( SignUpActivity.this, instanceIdResult -> {
-            newToken = instanceIdResult.getToken();
-        });
-    }
     private void signUp() {
         if(!validation()){
             scroll_view.setVisibility(View.GONE);
             progress_bar.setVisibility(View.VISIBLE);
             tv_progress.setVisibility(View.VISIBLE);
             String HttpUrl= DetectConnection.getUrl()+"android/sign-up.php";
-            getToken();
             StringRequest stringRequest=new StringRequest(Request.Method.POST, HttpUrl, response -> {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -351,6 +350,7 @@ public class SignUpActivity extends AppCompatActivity {
         }
         return error;
     }
+
     @Override
     public void onStop () {
         super.onStop();

@@ -4,13 +4,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +23,8 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -28,9 +35,12 @@ import com.android.volley.Request;
 import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.security.ProviderInstaller;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.iid.FirebaseInstanceId;
 import com.humudtech.paynama.utils.DetectConnection;
 import com.humudtech.paynama.utils.Tools;
 
@@ -38,6 +48,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
@@ -45,13 +56,15 @@ public class LoginActivity extends AppCompatActivity {
     Dialog dialog;
     EditText cnic;
     SharedPreferences sharedPreferences;
+    TextView openGmail;
     private ProgressBar progress_bar;
     private FloatingActionButton fab;
     boolean error = false;
-    String newToken = "";
+    String newToken = "00";
     LinearLayout layout, progress;
-    TextView forgot;
+    TextView forgot, guest;
     TextInputEditText username, password;
+    CheckBox checkBox;
     int PERMISSION_ALL = 1;
     String[] PERMISSIONS = {
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -66,8 +79,14 @@ public class LoginActivity extends AppCompatActivity {
         progress = findViewById(R.id.progress_bar1);
         progress_bar = (ProgressBar) findViewById(R.id.progress_bar);
         fab = (FloatingActionButton) findViewById(R.id.fab);
+        openGmail = findViewById(R.id.tv_email);
         username = findViewById(R.id.username);
         password = findViewById(R.id.password);
+        checkBox = findViewById(R.id.checkBox);
+        guest = findViewById(R.id.guest);
+
+        Tools.setSystemBarColor(this, android.R.color.white);
+        Tools.setSystemBarLight(this);
 
         forgot = findViewById(R.id.forgot);
 
@@ -77,13 +96,20 @@ public class LoginActivity extends AppCompatActivity {
             DetectConnection.hideKeyboard(view, LoginActivity.this);
             return false;
         });
+        openGmail.setOnClickListener(v -> {
+            openGmail();
+        });
 
         if(!hasPermissions(LoginActivity.this, PERMISSIONS)){
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_ALL);
-        }else{
-
         }
-
+        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(isChecked){
+                password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_NORMAL);
+            }else{
+                password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            }
+        });
         findViewById(R.id.sign_up_for_account).setOnClickListener(view -> {
             if(!hasPermissions(LoginActivity.this, PERMISSIONS)){
                 ActivityCompat.requestPermissions(LoginActivity.this, PERMISSIONS, PERMISSION_ALL);
@@ -95,6 +121,22 @@ public class LoginActivity extends AppCompatActivity {
 
                 }else{
                     Intent intent = new Intent(LoginActivity.this,SignUpActivity.class);
+                    startActivity(intent);
+                }
+
+            }
+        });
+        guest.setOnClickListener(view -> {
+            if(!hasPermissions(LoginActivity.this, PERMISSIONS)){
+                ActivityCompat.requestPermissions(LoginActivity.this, PERMISSIONS, PERMISSION_ALL);
+            }else{
+                if (!DetectConnection.checkInternetConnection(LoginActivity.this)) {
+                    if(!isFinishing()){
+                        DetectConnection.showNoInternet(LoginActivity.this);
+                    }
+
+                }else{
+                    Intent intent = new Intent(LoginActivity.this,BaseActivity.class);
                     startActivity(intent);
                 }
 
@@ -128,6 +170,7 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(i);
             finish();
         }
+        updateAndroidSecurityProvider(LoginActivity.this);
     }
 
     private void showRecoverDialog() {
@@ -198,18 +241,11 @@ public class LoginActivity extends AppCompatActivity {
             requestQueue.add(stringRequest);
         }
     }
-
-    private  void getToken(){
-        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener( LoginActivity.this, instanceIdResult -> {
-            newToken = instanceIdResult.getToken();
-        });
-    }
     private void login() {
         if(!validate()){
             String HttpUrl= DetectConnection.getUrl()+"android/login.php";
             progress_bar.setVisibility(View.VISIBLE);
             fab.setAlpha(0f);
-            getToken();
             StringRequest stringRequest=new StringRequest(Request.Method.POST, HttpUrl, response -> {
                 try {
                     JSONObject jsonObject = new JSONObject(response);
@@ -239,7 +275,7 @@ public class LoginActivity extends AppCompatActivity {
                 progress_bar.setVisibility(View.GONE);
                 fab.setAlpha(1f);
                 if(!isFinishing()){
-                    DetectConnection.showError(LoginActivity.this,"Something went wrong. Try again!");
+                    DetectConnection.showError(LoginActivity.this,error.getMessage());
                 }
 
             }){
@@ -295,5 +331,41 @@ public class LoginActivity extends AppCompatActivity {
         if (requestQueue != null) {
             requestQueue.cancelAll(this);
         }
+    }
+    private void updateAndroidSecurityProvider(Activity callingActivity) {
+        try {
+            ProviderInstaller.installIfNeeded(this);
+        } catch (GooglePlayServicesRepairableException e) {
+            // Thrown when Google Play Services is not installed, up-to-date, or enabled
+            // Show dialog to allow users to install, update, or otherwise enable Google Play services.
+            GooglePlayServicesUtil.getErrorDialog(e.getConnectionStatusCode(), callingActivity, 0);
+        } catch (GooglePlayServicesNotAvailableException e) {
+            Log.e("SecurityException", "Google Play Services not available.");
+        }
+    }
+    private void openGmail() {
+        // perform click on Email ID
+        Intent emailIntent = new Intent(Intent.ACTION_SEND);
+        emailIntent.setType("text/html");
+        final PackageManager pm = getPackageManager();
+        final List<ResolveInfo> matches = pm.queryIntentActivities(emailIntent, 0);
+        String className = null;
+        for (final ResolveInfo info : matches) {
+            if (info.activityInfo.packageName.equals("com.google.android.gm")) {
+                className = info.activityInfo.name;
+                if (className != null && !className.isEmpty()) {
+                    break;
+                }
+            }
+        }
+        emailIntent.setData(Uri.parse("mailto:helpdesk@paynama.net"));
+        emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Feedback of " + getResources().getString(R.string.app_name));
+        emailIntent.setClassName("com.google.android.gm", className);
+        try {
+            startActivity(emailIntent);
+        } catch (ActivityNotFoundException ex) {
+            // handle error
+        }
+
     }
 }
