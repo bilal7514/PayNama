@@ -209,21 +209,6 @@
 
         </RelativeLayout>
 
-        <TextView
-            android:id="@+id/guest"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Explore as Guest"
-            android:textAlignment="center"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
-            android:textColor="@color/colorAccent"
-            android:textSize="16dp" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
         <LinearLayout
             android:id="@+id/sign_up_for_account"
             android:layout_width="match_parent"
@@ -243,6 +228,20 @@
 
         </LinearLayout>
 
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/guest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Explore as Guest"
+            android:textSize="16dp"
+            android:theme="@style/Button.Primary" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -258,7 +257,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Pay Nama v1.1.6"
+                    android:text="Pay Nama v1.1.7"
                     android:textAlignment="textEnd"
                     android:textAppearance="@style/TextAppearance.AppCompat.Small"
                     android:textSize="12sp" />

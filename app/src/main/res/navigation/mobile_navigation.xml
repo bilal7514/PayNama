@@ -42,4 +42,14 @@
         android:name="com.humudtech.paynama.searchResultsFragment"
         android:label="Search Results"
         tools:layout="@layout/fragment_search_results" />
+    <fragment
+        android:id="@+id/navigation_books"
+        android:name="com.humudtech.paynama.BooksFragment"
+        android:label="Rules Books"
+        tools:layout="@layout/fragment_books" />
+    <fragment
+        android:id="@+id/readBookFragment"
+        android:name="com.humudtech.paynama.ReadBookFragment"
+        android:label="Rules Book"
+        tools:layout="@layout/fragment_read_book" />
 </navigation>

@@ -62,7 +62,8 @@ public class LoginActivity extends AppCompatActivity {
     boolean error = false;
     String newToken = "00";
     LinearLayout layout, progress;
-    TextView forgot, guest;
+    TextView forgot;
+    Button guest;
     TextInputEditText username, password;
     CheckBox checkBox;
     int PERMISSION_ALL = 1;

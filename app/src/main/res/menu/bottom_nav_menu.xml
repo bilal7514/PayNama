@@ -5,7 +5,18 @@
         android:id="@+id/navigation_reports"
         android:icon="@drawable/ic_dashboard_black_24dp"
         android:title="@string/title_reports" />
-
+    <item
+        android:id="@+id/navigation_forms"
+        android:icon="@drawable/ic_baseline_assignment_returned_24"
+        android:title="@string/title_forms" />
+    <item
+        android:id="@+id/navigation_notifications"
+        android:icon="@drawable/ic_flag_black_24dp"
+        android:title="@string/title_notifications" />
+    <item
+        android:id="@+id/navigation_books"
+        android:icon="@drawable/ic_baseline_menu_book_24"
+        android:title="@string/title_books" />
     <item
         android:id="@+id/navigation_settings"
         android:icon="@drawable/ic_settings_black_24dp"

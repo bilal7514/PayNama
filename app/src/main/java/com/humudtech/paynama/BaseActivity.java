@@ -46,7 +46,6 @@ public class BaseActivity extends AppCompatActivity implements SearchView.OnQuer
     SharedPreferences sharedPreferences;
     User applicationUser;
     SearchView searchView;
-    FloatingActionButton fab;
     //AdView mAdView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,8 +59,6 @@ public class BaseActivity extends AppCompatActivity implements SearchView.OnQuer
         menu.setLogo(R.drawable.ic_apps);
         menu.setDisplayUseLogoEnabled(true);
 
-        fab = findViewById(R.id.floatingActionButton);
-
         sharedPreferences= getSharedPreferences("UserData", MODE_PRIVATE);
         applicationUser = new User();
         applicationUser = DetectConnection.getUserObject(sharedPreferences.getString("userObject",""));
@@ -69,7 +66,7 @@ public class BaseActivity extends AppCompatActivity implements SearchView.OnQuer
         });
 
         mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId("ca-app-pub-5312186303011441/6606399397");
+        mInterstitialAd.setAdUnitId(sharedPreferences.getString("banner_ad","ca-app-pub-5312186303011441/6606399397"));
         InterstitialAdRequest = new AdRequest.Builder().build();
         mInterstitialAd.loadAd(InterstitialAdRequest);
         mInterstitialAd.setAdListener(new AdListener() {
@@ -144,7 +141,7 @@ public class BaseActivity extends AppCompatActivity implements SearchView.OnQuer
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
         appBarConfiguration = new AppBarConfiguration.Builder(
-                 R.id.navigation_notifications, R.id.navigation_reports, R.id.navigation_settings)
+                 R.id.navigation_notifications, R.id.navigation_reports, R.id.navigation_settings, R.id.navigation_forms, R.id.navigation_books)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
@@ -153,13 +150,6 @@ public class BaseActivity extends AppCompatActivity implements SearchView.OnQuer
         if(applicationUser!=null){
             subscribeToTopics();
         }
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Bundle bundle = new Bundle();
-                findNavController(BaseActivity.this,R.id.nav_host_fragment).navigate(R.id.navigation_notifications,bundle);
-            }
-        });
     }
 
     private void subscribeToTopics() {

@@ -2,7 +2,6 @@ package com.humudtech.paynama;
 
 import android.os.Bundle;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -10,8 +9,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
@@ -22,10 +19,10 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.humudtech.paynama.Adapters.BooksAdapter;
 import com.humudtech.paynama.Adapters.FormsAdapter;
-import com.humudtech.paynama.Adapters.NotificationsAdapter;
+import com.humudtech.paynama.Models.Book;
 import com.humudtech.paynama.Models.Form;
-import com.humudtech.paynama.Models.Notification;
 import com.humudtech.paynama.utils.DetectConnection;
 
 import org.json.JSONObject;
@@ -36,31 +33,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
-public class FormsFragment extends Fragment {
-    List<Form> forms;
+public class BooksFragment extends Fragment {
+    List<Book> books;
     RecyclerView recyclerView;
     private ProgressBar progress_bar;
     LinearLayout layout;
-    FormsAdapter adapter;
+    BooksAdapter adapter;
     com.android.volley.RequestQueue requestQueue;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View root =  inflater.inflate(R.layout.fragment_forms, container, false);
+        // Inflate the layout for this fragment
+        View root =  inflater.inflate(R.layout.fragment_books, container, false);
         ((BaseActivity) getActivity()).hideBanner();
 
         progress_bar = (ProgressBar) root.findViewById(R.id.progress_bar);
         layout = (LinearLayout) root.findViewById(R.id.layout);
-        forms = new ArrayList<>();
-
+        books = new ArrayList<>();
         recyclerView= (RecyclerView) root.findViewById(R.id.forms_recycler);
         recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 1));
         recyclerView.setHasFixedSize(true);
@@ -70,7 +60,7 @@ public class FormsFragment extends Fragment {
         if (!DetectConnection.checkInternetConnection(getActivity())) {
             DetectConnection.showNoInternet(getActivity());
         }else{
-            loadForms();
+            loadBooks();
         }
 
         return  root;
@@ -82,9 +72,9 @@ public class FormsFragment extends Fragment {
             requestQueue.cancelAll(this);
         }
     }
-    private void loadForms() {
+    private void loadBooks() {
 
-        String url = DetectConnection.getUrl()+"android/get-forms.php";
+        String url = DetectConnection.getUrl()+"android/get-books.php";
         StringRequest request = new StringRequest(Request.Method.POST, url, response -> {
             Gson gson = new Gson();
             try {
@@ -92,9 +82,9 @@ public class FormsFragment extends Fragment {
                 if(jsonObject.getString("code").equals("404")){
                     DetectConnection.showError(getActivity(),jsonObject.getString("msg"));
                 }else if(jsonObject.getString("code").equals("200")){
-                    Type listType = new TypeToken<List<Form>>() {}.getType();
-                    forms = gson.fromJson(jsonObject.getJSONArray("forms").toString(), listType);
-                    adapter = new FormsAdapter(getActivity(), forms);
+                    Type listType = new TypeToken<List<Book>>() {}.getType();
+                    books = gson.fromJson(jsonObject.getJSONArray("books").toString(), listType);
+                    adapter = new BooksAdapter(getActivity(), books);
                     recyclerView.setAdapter(adapter);
                     adapter.notifyDataSetChanged();
                     // initScrollListener();

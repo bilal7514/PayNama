@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -41,7 +43,7 @@ public class FormsAdapter extends
     @Override
     public HorizontalViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(mContext)
-                .inflate(R.layout.form_item, parent, false);
+                .inflate(R.layout.form_list, parent, false);
         return new HorizontalViewHolder(view);
     }
 
@@ -49,11 +51,11 @@ public class FormsAdapter extends
     public void onBindViewHolder(HorizontalViewHolder holder, int position) {
         final Form current = mArrayList.get(position);
         holder.title.setText(current.getTitle());
-
-        Glide.with(mContext)
-                .load(current.getIcon())
-                .placeholder(new ColorDrawable(Color.GRAY))
-                .into(holder.icon);
+        holder.category.setText(current.getCategory());
+        Bundle bundle = new Bundle();
+        bundle.putStringArrayList("images",current.getImages());
+        Glide.with(mContext).load(current.getThumbnail()).placeholder(new ColorDrawable(Color.GRAY)).into(holder.thumbnail);
+        holder.view.setOnClickListener(v -> Navigation.findNavController(v).navigate(R.id.galleryFragment,bundle));
         holder.download.setOnClickListener(v -> {
             String url = current.getFile();
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -75,7 +77,6 @@ public class FormsAdapter extends
             manager.enqueue(request); //crash here
             Toast.makeText(mContext, "Downloading File...", Toast.LENGTH_SHORT).show();
         });
-
     }
 
     @Override
@@ -84,12 +85,16 @@ public class FormsAdapter extends
     }
 
     class HorizontalViewHolder extends RecyclerView.ViewHolder {
-        @BindView(R.id.form_title)
+        @BindView(R.id.title)
         TextView title;
-        @BindView(R.id.form_icon)
-        ImageView icon;
-        @BindView(R.id.bt_download_form)
-        ImageButton download;
+        @BindView(R.id.image)
+        ImageView thumbnail;
+        @BindView(R.id.download)
+        TextView download;
+        @BindView(R.id.view)
+        TextView view;
+        @BindView(R.id.category)
+        TextView category;
 
         public HorizontalViewHolder(View itemView) {
             super(itemView);
